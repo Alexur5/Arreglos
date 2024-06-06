@@ -7,55 +7,118 @@ using namespace std;
 int buscaDepartamento(Depto listaDept[], int cantDept, int idDeptoABuscar) {
     /*Función que busca un id de un departamento en el arreglo de departamentos
     si lo encuentra que regrese la posición del arreglo donde está, si no regresa -1*/
-
-
+    for (int i = 0; i < cantDept; ++i) {
+        if (listaDept[i].getIdDep() == idDeptoABuscar) {
+            return i;
+        }
+    }
     return -1;
 }
 
 string nombreDepartamento(Depto listaDept[], int cantDept, int idDeptoABuscar) {
     /*Función que busca un id de un departamento en el arreglo de departamentos
       si lo encuentra que regrese el nombre del departamento, si no lo encuentra regresa ""*/
-    
+    int pos = buscaDepartamento(listaDept, cantDept, idDeptoABuscar);
+    if (pos != -1) {
+    return listaDept[pos].getNombre();
+    }
     return "";
 }
 
 void cargaDatosDepartamentos(Depto listaDeptos[], int &cantDeptos) {
     /*Carga datos del archivo Deptos.txt en listaDeptos y cantDeptos lo actualiza
       con el número de departamentos cargados del archivo*/
-    int numDepartamento;
-    string nombreDepartamento;
+     ifstream inFile("Deptos.txt");
+    if (!inFile) {
+        cerr << "Error al abrir el archivo Deptos.txt" << endl;
+        return;
+    }
 
+    int id;
+    string nombre;
+    cantDeptos = 0;
+
+    while (inFile >> id >> ws && getline(inFile, nombre)) {
+        listaDeptos[cantDeptos].setIdDep(id);
+        listaDeptos[cantDeptos].setNombre(nombre);
+        ++cantDeptos;
+    }
+
+    inFile.close();
 }
 
 void muestraDepartamentos(Depto listaDept[], int cantDep) {
     /*Muestra la lista de departamentos*/
-    cout << "Departamentos de la tienda" << endl;
-    
+     for (int i = 0; i < cantDep; i++) {
+        listaDept[i].imprime();
+    }
 }
 
 void cargaDatosVendedores(Vendedor listaVend[], int &cantVend, Depto listaDep[], int cantDep) {
     /* Función que regresa la listaVend y la cantVend con datos recibe el arreglo vacío
        y la variable cantVend sin inicializar y les pone valor en esta función*/
-    int idDep;
-    string nom;
-    double vent;
-    int num;
-    
+    ifstream inFile("Vendedores.txt");
+    if (!inFile) {
+        cerr << "Error opening Vendedores.txt" << endl;
+        return;
+    }
+    string nombre;
+    int idDepto;
+    double ventas;
+    cantVend = 0;
+    while (inFile >> nombre >> idDepto >> ventas) {
+        int posDepto = buscaDepartamento(listaDep, cantDep, idDepto);
+        if (posDepto != -1) {
+            listaVend[cantVend] = Vendedor(nombre, listaDep[posDepto]);
+            listaVend[cantVend].setVentas(ventas);
+            ++cantVend;
+        } else {
+            cerr << "Error: Departamento " << idDepto << " no encontrado para el vendedor " << nombre << endl;
+        }
+    }
+    inFile.close();
 }
 
 void muestraVendedores(Vendedor listaVen[], int cantVen) {
     /*Muestra la lista de vendedores*/
-    
+    cout << "Lista de Vendedores" << endl;
+    for (int i = 0; i < cantVen; i++) {
+        listaVen[i].imprime();
+    }
 }
 
 void vendedoresPorDepartamento(Vendedor listaVen[], int cantVend, Depto listaDep[], int cantDept, int idDeptoAConsultar) {
     /* Muestra los nombres de los vendedores de un departamento */
-    
+    string nombreDepto = nombreDepartamento(listaDep, cantDept, idDeptoAConsultar);
+    if (nombreDepto == "") {
+        cout << "Departamento no encontrado." << endl;
+        return;
+    }
+    cout << "Vendedores del departamento " << nombreDepto << ":" << endl;
+    for (int i = 0; i < cantVend; ++i) {
+        if (listaVen[i].getDepartamento().getIdDep() == idDeptoAConsultar) {
+            cout << listaVen[i].getNombre() << endl;
+        }
+    }
 }
 
 int registrarVentas(Vendedor listaVend[], int cantVend) {
     /* Registra las ventas de un vendedor de la lista de vendedores existentes
        suma las ventas nuevas a las que ya estaban registradas */
+       string nombre;
+    double monto;
+    cout << "Ingrese el nombre del vendedor: ";
+    cin >> nombre;
+    cout << "Ingrese el monto de las ventas: ";
+    cin >> monto;
+    for (int i = 0; i < cantVend; ++i) {
+        if (listaVend[i].getNombre() == nombre) {
+            listaVend[i].setVentas(listaVend[i].getVentas() + monto);
+            cout << "Ventas registradas correctamente." << endl;
+            return 0;
+        }
+    }
+    cout << "Vendedor no encontrado." << endl;
 }
 
 int main() {
